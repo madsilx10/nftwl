@@ -1,8 +1,12 @@
-const axios = require("axios");
 const fs = require("fs");
 
-const TWEET_URL = "https://twitter.com/intent/tweet"; // ganti sama link tweet target
+const TWEET_TARGET_URL = "GANTI_LINK_TWEET_TARGET"; // ganti ini
 const TARGET_USER = "gloobiez"; // ganti sama username yang di-follow
+
+// MODE: "one" | "all" | "from"
+const MODE = "all";
+const ONE_INDEX = 1;   // kalo MODE=one, akun ke berapa (mulai dari 1)
+const FROM_INDEX = 1;  // kalo MODE=from, mulai dari akun ke berapa
 
 const comments = [
   "looks interesting",
@@ -46,7 +50,14 @@ async function twitterRequest(method, url, data, token) {
     "x-twitter-auth-type": "OAuth2Session",
     "x-twitter-client-language": "en",
   };
-  return axios({ method, url, data, headers });
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: data ? (typeof data === "string" ? data : JSON.stringify(data)) : undefined,
+  });
+  const json = await res.json();
+  if (!res.ok) throw { response: { data: json, status: res.status } };
+  return { data: json };
 }
 
 async function follow(token, userId) {
@@ -119,11 +130,16 @@ async function postComment(token, tweetId, text) {
 }
 
 async function submitClaim(commentUrl, evmAddress) {
-  return axios.post(
-    "https://gloobiez.xyz/api/wl/claims",
-    { commentUrl, evmAddress },
-    { headers: { "content-type": "application/json", origin: "https://gloobiez.xyz", referer: "https://gloobiez.xyz/" } }
-  );
+  const res = await fetch("https://gloobiez.xyz/api/wl/claims", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://gloobiez.xyz",
+      referer: "https://gloobiez.xyz/",
+    },
+    body: JSON.stringify({ commentUrl, evmAddress }),
+  });
+  return res.json();
 }
 
 async function getUserId(token, username) {
@@ -141,13 +157,7 @@ async function getTweetId(tweetUrl) {
 }
 
 async function main() {
-  const TWEET_TARGET_URL = "GANTI_LINK_TWEET_TARGET"; // ganti ini
   const tweetId = await getTweetId(TWEET_TARGET_URL);
-
-  // MODE: "one" | "all" | "from"
-  const MODE = "all";
-  const ONE_INDEX = 1;   // kalo MODE=one, akun ke berapa (mulai dari 1)
-  const FROM_INDEX = 1;  // kalo MODE=from, mulai dari akun ke berapa
 
   let start = 0;
   let end = tokens.length;
@@ -194,10 +204,10 @@ async function main() {
 
       // Submit claim
       const claim = await submitClaim(commentUrl, wallet);
-      console.log("✓ Claim submitted:", claim.data?.claim?.commentDone ? "success" : "check response");
+      console.log("✓ Claim submitted:", claim?.claim?.commentDone ? "success" : JSON.stringify(claim));
       await sleep(5000 + Math.random() * 5000);
     } catch (err) {
-      console.error(`✗ Error akun ${i + 1}:`, err.response?.data || err.message);
+      console.error(`✗ Error akun ${i + 1}:`, err.response?.data || err.message || err);
     }
   }
 
