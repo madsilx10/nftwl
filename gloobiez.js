@@ -41,9 +41,9 @@ const random = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 async function twitterRequest(method, url, data, token) {
   const headers = {
-    authorization: "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I7BeIgXBO3g%3DUcf9IbT6Xp5Bfj6RKxVF2x5JJSumjWwYPAz6rS4yxUyF2tVrqmAy2Y",
+    authorization: "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
     "x-csrf-token": token.split("ct0=")[1]?.split(";")[0] || "",
-    cookie: token,
+    cookie: `auth_token=${token.split("auth_token=")[1]?.split(";")[0]?.trim()}; ct0=${token.split("ct0=")[1]?.split(";")[0]?.trim()}`,
     "content-type": "application/json",
     "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36",
     "x-twitter-active-user": "yes",
